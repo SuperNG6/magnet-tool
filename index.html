@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';">
+    <title>磁力提取工具 - 温润工具箱</title>
+    <!-- 设计尺寸：响应式网页 -->
+    <!-- 产品类型：磁力链接提取工具 -->
+    <!-- 核心技术栈 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <style>
+        /* 温润木工坊色彩系统 */
+        :root {
+            --bg-primary: #fefcf7;      /* 温暖米白色背景 */
+            --bg-secondary: #f8f6f0;    /* 次要背景 */
+            --color-primary: #4a5d3a;   /* 深橄榄绿 */
+            --color-accent: #d97706;     /* 琥珀橙 */
+            --color-text: #6b5b47;      /* 灰褐色文本 */
+            --color-text-light: #9c8a73; /* 浅灰褐色 */
+            --color-success: #059669;    /* 成功绿 */
+            --border-soft: #e8e2d4;     /* 柔和边框 */
+            --shadow-warm: 0 4px 6px -1px rgba(107, 91, 71, 0.1), 0 2px 4px -1px rgba(107, 91, 71, 0.06);
+            --shadow-card: 0 8px 25px -5px rgba(107, 91, 71, 0.1), 0 4px 6px -2px rgba(107, 91, 71, 0.05);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', 'Droid Sans', 'Source Han Sans SC', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+        
+        /* 自定义滚动条 - 木质感 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-text-light);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text);
+        }
+        
+        /* 工具箱卡片样式 */
+        .toolbox-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-soft);
+            transition: all 0.3s ease;
+        }
+        
+        .toolbox-card:hover {
+            box-shadow: 0 12px 40px -10px rgba(107, 91, 71, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        /* 按钮样式 */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #5a6d4a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: var(--shadow-warm);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3a4d2a 0%, var(--color-primary) 100%);
+            box-shadow: 0 6px 20px -5px rgba(74, 93, 58, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-accent {
+            background: linear-gradient(135deg, var(--color-accent) 0%, #ea580c 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: var(--shadow-warm);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .btn-accent:hover {
+            background: linear-gradient(135deg, #c2410c 0%, var(--color-accent) 100%);
+            box-shadow: 0 6px 20px -5px rgba(217, 119, 6, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-purple {
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: var(--shadow-warm);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .btn-purple:hover {
+            background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+            box-shadow: 0 6px 20px -5px rgba(168, 85, 247, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-copy {
+            background: white;
+            color: var(--color-text);
+            border: 2px solid var(--border-soft);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .btn-copy:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            background: #f8f9f0;
+        }
+        
+        /* 输入区域 */
+        .input-area {
+            background: white;
+            border: 2px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 120px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 14px;
+            color: var(--color-text);
+            transition: all 0.2s ease;
+            resize: vertical;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .input-area:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(74, 93, 58, 0.1);
+        }
+        
+        .input-area::placeholder {
+            color: var(--color-text-light);
+        }
+        
+        /* 磁力链接项 */
+        .magnet-item {
+            background: white;
+            border: 1px solid var(--border-soft);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .magnet-item:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-warm);
+        }
+        
+        /* 统计数字 */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-accent);
+            text-shadow: 0 2px 4px rgba(217, 119, 6, 0.2);
+        }
+        
+        /* 历史记录样式 */
+        .history-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .history-item:hover {
+            background: white;
+            border-color: var(--color-primary);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .toolbox-card { padding: 20px; }
+            .btn-primary, .btn-accent { padding: 10px 20px; font-size: 13px; }
+            .stat-number { font-size: 1.5rem; }
+        }
+        
+        /* 成功提示动画 */
+        .success-flash {
+            animation: successFlash 0.6s ease;
+        }
+        
+        @keyframes successFlash {
+            0% { background-color: rgba(5, 150, 105, 0.1); }
+            50% { background-color: rgba(5, 150, 105, 0.2); }
+            100% { background-color: transparent; }
+        }
+        
+        /* 屏幕阅读器专用类 */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="min-h-screen py-8">
+        <div class="container mx-auto max-w-6xl px-4">
+            <!-- 头部标题区 -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl mb-4 shadow-lg">
+                    <i class="fas fa-magnet text-2xl text-amber-600"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">磁力提取工具</h1>
+                <p class="text-gray-600">粘贴任意内容，智能提取磁力链接</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- 左侧主要工作区 -->
+                <div class="lg:col-span-2">
+                    <!-- 输入区域 -->
+                    <div class="toolbox-card p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold flex items-center">
+                                <i class="fas fa-paste mr-2 text-amber-600"></i>
+                                粘贴内容
+                            </h2>
+                            <button onclick="clearInput()" class="text-sm text-gray-500 hover:text-red-500 transition-colors">
+                                <i class="fas fa-times mr-1"></i>清空
+                            </button>
+                        </div>
+                        <textarea 
+                            id="inputText" 
+                            class="input-area" 
+                            placeholder="粘贴包含磁力链接的任意内容到这里..."
+                            oninput="debouncedExtractMagnets()"
+                            aria-label="输入包含磁力链接的文本内容"
+                            aria-describedby="input-help"
+                        ></textarea>
+                        <div id="input-help" class="sr-only">支持批量提取磁力链接，自动识别标题信息</div>
+                    </div>
+
+                    <!-- 统计和操作区 -->
+                    <div class="toolbox-card p-6 mb-6">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center space-x-6">
+                                <div class="text-center">
+                                    <div id="magnetCount" class="stat-number" aria-label="提取的磁力链接数量">0</div>
+                                    <div class="text-sm text-gray-500">提取链接</div>
+                                </div>
+                                <div class="text-center">
+                                    <div id="titleCount" class="stat-number" aria-label="识别的标题数量">0</div>
+                                    <div class="text-sm text-gray-500">识别标题</div>
+                                </div>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button 
+                                    onclick="processCrossLineMagnets()" 
+                                    class="btn-purple flex items-center" 
+                                    id="crossLineMagnetBtn" 
+                                    style="display: none;" 
+                                    title="识别可能跨行分割的磁力链接"
+                                    aria-label="识别可能跨行分割的磁力链接">
+                                    <i class="fas fa-magic mr-2" aria-hidden="true"></i>
+                                    识别换行磁力
+                                </button>
+                                <button 
+                                    onclick="copyAllMagnets()" 
+                                    class="btn-accent flex items-center" 
+                                    id="copyAllBtn" 
+                                    disabled 
+                                    title="复制完整磁力链接（包含所有参数）"
+                                    aria-label="复制所有磁力链接">
+                                    <i class="fas fa-copy mr-2" aria-hidden="true"></i>
+                                    复制全部
+                                </button>
+                                <button 
+                                    onclick="saveToHistory()" 
+                                    class="btn-primary flex items-center" 
+                                    id="saveBtn" 
+                                    disabled
+                                    aria-label="保存当前结果到历史记录">
+                                    <i class="fas fa-save mr-2" aria-hidden="true"></i>
+                                    保存记录
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 提取结果区 -->
+                    <div class="toolbox-card p-6">
+                        <h2 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-list mr-2 text-green-600"></i>
+                            提取结果
+                        </h2>
+                        <div id="resultArea" class="space-y-3" role="region" aria-label="磁力链接提取结果">
+                            <div class="text-center py-12 text-gray-400">
+                                <i class="fas fa-search text-4xl mb-4" aria-hidden="true"></i>
+                                <p>暂无内容，请粘贴包含磁力链接的文本</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧历史记录 -->
+                <div class="lg:col-span-1">
+                    <div class="toolbox-card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold flex items-center">
+                                <i class="fas fa-history mr-2 text-blue-600"></i>
+                                历史记录
+                            </h2>
+                            <button onclick="clearHistory()" class="text-sm text-gray-500 hover:text-red-500 transition-colors">
+                                <i class="fas fa-trash mr-1"></i>清空
+                            </button>
+                        </div>
+                        <div id="historyArea" class="space-y-2 max-h-96 overflow-y-auto" role="region" aria-label="历史记录列表">
+                            <div class="text-center py-8 text-gray-400">
+                                <i class="fas fa-clock text-3xl mb-3" aria-hidden="true"></i>
+                                <p class="text-sm">暂无历史记录</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 版权信息 -->
+            <div class="mt-12 pt-8 border-t border-gray-200 text-center">
+                <p class="text-sm text-gray-500">
+                    <a href="https://sleele.com" target="_blank" class="hover:text-gray-700 transition-colors">
+                        COPYRIGHT <span id="currentYear">2025</span> SLEELE的博客. ALL RIGHTS RESERVED.
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 复制成功提示 -->
+    <div id="copyToast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300 z-50">
+        <i class="fas fa-check mr-2"></i>
+        复制成功！
+    </div>
+
+    <script>
+        // DOM操作模块 - 分离DOM操作逻辑
+        class DOMManager {
+            static createElement(tag, attributes = {}, children = []) {
+                const element = document.createElement(tag);
+                
+                // 设置属性
+                Object.entries(attributes).forEach(([key, value]) => {
+                    if (key === 'className') {
+                        element.className = value;
+                    } else if (key === 'textContent') {
+                        element.textContent = value;
+                    } else {
+                        element.setAttribute(key, value);
+                    }
+                });
+                
+                // 添加子元素
+                children.forEach(child => {
+                    if (typeof child === 'string') {
+                        element.appendChild(document.createTextNode(child));
+                    } else {
+                        element.appendChild(child);
+                    }
+                });
+                
+                return element;
+            }
+            
+            static updateElement(id, property, value) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element[property] = value;
+                }
+            }
+            
+            static setElementDisabled(id, disabled) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.disabled = disabled;
+                }
+            }
+            
+            static showElement(id, display = 'block') {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = display;
+                }
+            }
+            
+            static hideElement(id) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = 'none';
+                }
+            }
+        }
+
+        // 性能优化的正则模块
+        class RegexOptimizer {
+            static #magnetCache = new Map();
+            static #lastInputHash = null;
+            
+            // 分块处理大文本，避免正则性能问题
+            static extractMagnetsOptimized(text, chunkSize = 10000) {
+                if (!text || text.length === 0) return [];
+                
+                // 生成输入哈希，检查缓存
+                const inputHash = this.#generateHash(text);
+                if (this.#lastInputHash === inputHash && this.#magnetCache.has(inputHash)) {
+                    return this.#magnetCache.get(inputHash);
+                }
+                
+                const results = [];
+                const textLength = text.length;
+                
+                // 对于小文本，直接处理
+                if (textLength <= chunkSize) {
+                    const matches = this.#extractFromChunk(text);
+                    results.push(...matches);
+                } else {
+                    // 分块处理大文本
+                    for (let i = 0; i < textLength; i += chunkSize) {
+                        const chunk = text.slice(i, Math.min(i + chunkSize + 200, textLength)); // 重叠200字符避免截断
+                        const matches = this.#extractFromChunk(chunk);
+                        results.push(...matches);
+                    }
+                }
+                
+                // 去重
+                const uniqueResults = [...new Set(results)];
+                
+                // 缓存结果
+                this.#magnetCache.set(inputHash, uniqueResults);
+                this.#lastInputHash = inputHash;
+                
+                // 限制缓存大小
+                if (this.#magnetCache.size > 10) {
+                    const firstKey = this.#magnetCache.keys().next().value;
+                    this.#magnetCache.delete(firstKey);
+                }
+                
+                return uniqueResults;
+            }
+            
+            static #extractFromChunk(chunk) {
+                const results = [];
+                // 优化的正则表达式，更精确的匹配
+                const magnetRegex = /magnet:\?xt=urn:btih:[a-fA-F0-9]{40}(?:[&?][^&\s]*)*|magnet:\?xt=urn:btih:[A-Za-z2-7]{32}(?:[&?][^&\s]*)*/gi;
+                
+                let match;
+                while ((match = magnetRegex.exec(chunk)) !== null) {
+                    const cleanMatch = match[0].trim().replace(/[.,;:!?）】』」》〉)}\]]*$/, '');
+                    if (cleanMatch.includes('xt=urn:btih:')) {
+                        results.push(cleanMatch);
+                    }
+                }
+                
+                return results;
+            }
+            
+            static #generateHash(text) {
+                let hash = 0;
+                for (let i = 0; i < Math.min(text.length, 1000); i++) { // 只使用前1000字符生成哈希
+                    const char = text.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return Math.abs(hash).toString(36);
+            }
+        }
+
+        // UI渲染模块 - 分离渲染逻辑
+        class UIRenderer {
+            // 高性能历史记录渲染 - 使用DocumentFragment
+            static renderHistoryOptimized(historyData, container) {
+                // 安全清空容器
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                
+                if (historyData.length === 0) {
+                    const emptyState = DOMManager.createElement('div', {
+                        className: 'text-center py-8 text-gray-400'
+                    });
+                    
+                    const icon = DOMManager.createElement('i', {
+                        className: 'fas fa-clock text-3xl mb-3'
+                    });
+                    
+                    const text = DOMManager.createElement('p', {
+                        className: 'text-sm',
+                        textContent: '暂无历史记录'
+                    });
+                    
+                    emptyState.appendChild(icon);
+                    emptyState.appendChild(text);
+                    container.appendChild(emptyState);
+                    return;
+                }
+                
+                // 使用DocumentFragment优化性能
+                const fragment = document.createDocumentFragment();
+                
+                historyData.forEach(item => {
+                    const historyItem = this.#createHistoryItem(item);
+                    fragment.appendChild(historyItem);
+                });
+                
+                container.appendChild(fragment);
+            }
+            
+            static #createHistoryItem(item) {
+                const saveType = item.saveType || 'manual';
+                const saveTypeLabel = saveType === 'manual' ? '手动保存' : '自动保存';
+                const saveTypeClass = saveType === 'manual' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700';
+                
+                let timestamp = item.timestamp;
+                if (!timestamp) {
+                    const date = item.id ? new Date(item.id) : new Date();
+                    timestamp = date.toLocaleString('zh-CN');
+                }
+                
+                // 主容器
+                const historyItem = DOMManager.createElement('div', {
+                    className: 'history-item',
+                    'data-history-id': item.id,
+                    'role': 'button',
+                    'tabindex': '0',
+                    'aria-label': `历史记录：${item.preview || '磁力链接'} - ${item.count || 0}个磁力链接`
+                });
+                
+                // 头部信息
+                const header = DOMManager.createElement('div', {
+                    className: 'flex items-center justify-between mb-2'
+                });
+                
+                const leftInfo = DOMManager.createElement('div', {
+                    className: 'flex items-center space-x-2'
+                });
+                
+                const timeSpan = DOMManager.createElement('span', {
+                    className: 'text-xs text-gray-500',
+                    textContent: timestamp
+                });
+                
+                const typeSpan = DOMManager.createElement('span', {
+                    className: `text-xs ${saveTypeClass} px-2 py-1 rounded-full`,
+                    textContent: saveTypeLabel
+                });
+                
+                const countSpan = DOMManager.createElement('span', {
+                    className: 'text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full',
+                    textContent: `${item.count || 0}个磁力`
+                });
+                
+                leftInfo.appendChild(timeSpan);
+                leftInfo.appendChild(typeSpan);
+                header.appendChild(leftInfo);
+                header.appendChild(countSpan);
+                
+                // 预览内容
+                const preview = DOMManager.createElement('div', {
+                    className: 'text-sm text-gray-700 truncate font-mono',
+                    textContent: item.preview || '暂无预览'
+                });
+                
+                historyItem.appendChild(header);
+                historyItem.appendChild(preview);
+                
+                return historyItem;
+            }
+            
+            // 高性能磁力结果渲染
+            static renderMagnetResults(results, container) {
+                // 安全清空容器
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                
+                if (results.length === 0) {
+                    const emptyState = DOMManager.createElement('div', {
+                        className: 'text-center py-12 text-gray-400'
+                    });
+                    
+                    const icon = DOMManager.createElement('i', {
+                        className: 'fas fa-search text-4xl mb-4'
+                    });
+                    
+                    const text = DOMManager.createElement('p', {
+                        textContent: '暂无内容，请粘贴包含磁力链接的文本'
+                    });
+                    
+                    emptyState.appendChild(icon);
+                    emptyState.appendChild(text);
+                    container.appendChild(emptyState);
+                    return;
+                }
+                
+                const fragment = document.createDocumentFragment();
+                
+                results.forEach((item, idx) => {
+                    const magnetItem = this.#createMagnetItem(item, idx);
+                    fragment.appendChild(magnetItem);
+                });
+                
+                container.appendChild(fragment);
+            }
+            
+            static #createMagnetItem(item, idx) {
+                // 主容器
+                const magnetItem = DOMManager.createElement('div', {
+                    className: 'magnet-item',
+                    'role': 'article',
+                    'aria-label': `磁力链接 ${idx + 1}: ${item.title || '无标题'}`
+                });
+                
+                // 内容容器
+                const contentWrapper = DOMManager.createElement('div', {
+                    className: 'flex items-start justify-between mb-2'
+                });
+                
+                // 左侧内容
+                const leftContent = DOMManager.createElement('div', {
+                    className: 'flex-1 min-w-0 mr-3'
+                });
+                
+                // 标题
+                if (item.title) {
+                    const titleDiv = DOMManager.createElement('div', {
+                        className: 'font-medium text-gray-800 mb-2 flex items-center'
+                    });
+                    
+                    const titleIcon = DOMManager.createElement('i', {
+                        className: item.crossLineRecovered 
+                            ? 'fas fa-magic mr-2 text-purple-500 text-sm' 
+                            : 'fas fa-tag mr-2 text-amber-500 text-sm',
+                        'aria-hidden': 'true'
+                    });
+                    
+                    const titleSpan = DOMManager.createElement('span', {
+                        className: 'truncate',
+                        textContent: item.title
+                    });
+                    
+                    titleDiv.appendChild(titleIcon);
+                    titleDiv.appendChild(titleSpan);
+                    
+                    if (item.crossLineRecovered) {
+                        const badge = DOMManager.createElement('span', {
+                            className: 'ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full',
+                            textContent: '换行重组'
+                        });
+                        titleDiv.appendChild(badge);
+                    }
+                    
+                    leftContent.appendChild(titleDiv);
+                }
+                
+                // 磁力链接
+                const magnetDiv = DOMManager.createElement('div', {
+                    className: 'text-sm text-gray-600 font-mono break-all leading-relaxed',
+                    textContent: item.magnet
+                });
+                leftContent.appendChild(magnetDiv);
+                
+                // 按钮组
+                const buttonGroup = DOMManager.createElement('div', {
+                    className: 'flex space-x-2'
+                });
+                
+                // 打开按钮
+                const openBtn = DOMManager.createElement('button', {
+                    className: 'btn-copy flex-shrink-0 open-single-btn',
+                    'data-magnet-index': idx,
+                    'title': '打开此链接（需已安装BT客户端）',
+                    'aria-label': '打开磁力链接'
+                });
+                
+                const openIcon = DOMManager.createElement('i', {
+                    className: 'fas fa-external-link-alt mr-1',
+                    'aria-hidden': 'true'
+                });
+                openBtn.appendChild(openIcon);
+                openBtn.appendChild(document.createTextNode('打开'));
+                
+                // 复制按钮
+                const copyBtn = DOMManager.createElement('button', {
+                    className: 'btn-copy flex-shrink-0 copy-single-btn',
+                    'data-magnet-index': idx,
+                    'title': '复制此链接',
+                    'aria-label': '复制磁力链接'
+                });
+                
+                const copyIcon = DOMManager.createElement('i', {
+                    className: 'fas fa-copy mr-1',
+                    'aria-hidden': 'true'
+                });
+                copyBtn.appendChild(copyIcon);
+                copyBtn.appendChild(document.createTextNode('复制'));
+                
+                buttonGroup.appendChild(openBtn);
+                buttonGroup.appendChild(copyBtn);
+                
+                // 序号
+                const indexDiv = DOMManager.createElement('div', {
+                    className: 'text-xs text-gray-400 flex items-center'
+                });
+                
+                const indexSpan = DOMManager.createElement('span', {
+                    className: 'bg-gray-100 px-2 py-1 rounded-full',
+                    textContent: `#${idx + 1}`
+                });
+                indexDiv.appendChild(indexSpan);
+                
+                // 组装
+                contentWrapper.appendChild(leftContent);
+                contentWrapper.appendChild(buttonGroup);
+                magnetItem.appendChild(contentWrapper);
+                magnetItem.appendChild(indexDiv);
+                
+                return magnetItem;
+            }
+        }
+
+        // 磁力提取器主类 - 业务逻辑分离
+        // 磁力提取器主类 - 业务逻辑分离
+        class MagnetExtractor {
+            constructor() {
+                // 私有状态
+                this.#extractedMagnets = [];
+                this.#extractedResults = [];
+                this.#currentHistory = [];
+                this.#lastAutoSaveHash = null;
+                this.#autoSaveTimer = null;
+                this.#debounceTimer = null;
+                this.#hasPotentialCrossLineMagnets = false;
+                
+                this.init();
+            }
+            
+            // 私有字段
+            #extractedMagnets;
+            #extractedResults;
+            #currentHistory;
+            #lastAutoSaveHash;
+            #autoSaveTimer;
+            #debounceTimer;
+            #hasPotentialCrossLineMagnets;
+            
+            // 配置常量
+            static PERFORMANCE_LIMITS = {
+                MAX_INPUT_SIZE: 30 * 1024 * 1024,
+                MAX_MAGNETS: 1000,
+                DEBOUNCE_DELAY: 300,
+                MAX_HISTORY_SIZE: 10 * 1024 * 1024,
+                MAX_HISTORY_ITEMS: 30,
+                REGEX_CHUNK_SIZE: 10000
+            };
+            
+            static MAGNET_SPECS = {
+                MIN_STANDARD_LENGTH: 60,
+                STANDARD_PREFIX: 'magnet:?xt=urn:btih:',
+                HASH_LENGTH_40: 40,
+                HASH_LENGTH_32: 32
+            };
+            
+            static UI_CONSTANTS = {
+                BUTTON_TIMEOUT: 1500,
+                TOAST_ERROR_TIMEOUT: 4000,
+                TOAST_SUCCESS_TIMEOUT: 2500,
+                AUTO_SAVE_DELAY: 1000
+            };
+            
+            // 初始化
+            init() {
+                this.loadHistory();
+                this.setupEventListeners();
+                this.updateCurrentYear();
+                this.setupAccessibility();
+            }
+            
+            // 设置无障碍访问
+            setupAccessibility() {
+                // 为主要区域添加ARIA标签
+                const inputArea = document.getElementById('inputText');
+                if (inputArea) {
+                    inputArea.setAttribute('aria-label', '输入包含磁力链接的文本内容');
+                    inputArea.setAttribute('aria-describedby', 'input-help');
+                }
+                
+                // 为统计区域添加ARIA标签
+                const magnetCount = document.getElementById('magnetCount');
+                const titleCount = document.getElementById('titleCount');
+                if (magnetCount) magnetCount.setAttribute('aria-label', '提取的磁力链接数量');
+                if (titleCount) titleCount.setAttribute('aria-label', '识别的标题数量');
+                
+                // 为按钮组添加角色
+                const copyAllBtn = document.getElementById('copyAllBtn');
+                const saveBtn = document.getElementById('saveBtn');
+                const crossLineBtn = document.getElementById('crossLineMagnetBtn');
+                
+                if (copyAllBtn) copyAllBtn.setAttribute('aria-label', '复制所有磁力链接');
+                if (saveBtn) saveBtn.setAttribute('aria-label', '保存当前结果到历史记录');
+                if (crossLineBtn) crossLineBtn.setAttribute('aria-label', '识别可能跨行分割的磁力链接');
+                
+                // 为结果区域添加ARIA标签
+                const resultArea = document.getElementById('resultArea');
+                const historyArea = document.getElementById('historyArea');
+                if (resultArea) resultArea.setAttribute('role', 'region');
+                if (historyArea) historyArea.setAttribute('role', 'region');
+            }
+            
+            // 事件监听器设置
+            setupEventListeners() {
+                document.addEventListener('click', this.handleGlobalClick.bind(this));
+                document.addEventListener('keydown', this.handleKeyDown.bind(this));
+                window.addEventListener('beforeunload', this.cleanup.bind(this));
+                document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+            }
+            
+            // 键盘事件处理（无障碍访问）
+            handleKeyDown(e) {
+                // 处理历史记录项的键盘访问
+                if (e.target.closest('.history-item') && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    const historyItem = e.target.closest('.history-item');
+                    const id = parseInt(historyItem.dataset.historyId);
+                    if (id) this.loadFromHistory(id);
+                }
+            }
+            
+            // 全局点击处理
+            handleGlobalClick(e) {
+                if (e.target.closest('.copy-single-btn')) {
+                    const button = e.target.closest('.copy-single-btn');
+                    const index = parseInt(button.dataset.magnetIndex);
+                    const magnet = this.#extractedResults[index]?.magnet;
+                    if (magnet) this.copySingle(magnet, button);
+                }
+                
+                if (e.target.closest('.open-single-btn')) {
+                    const button = e.target.closest('.open-single-btn');
+                    const index = parseInt(button.dataset.magnetIndex);
+                    const magnet = this.#extractedResults[index]?.magnet;
+                    if (magnet) this.openSingle(magnet, button);
+                }
+                
+                if (e.target.closest('.history-item')) {
+                    const historyItem = e.target.closest('.history-item');
+                    const id = parseInt(historyItem.dataset.historyId);
+                    if (id) this.loadFromHistory(id);
+                }
+            }
+            
+            // 页面可见性变化处理
+            handleVisibilityChange() {
+                if (document.hidden) {
+                    this.cleanup();
+                }
+            }
+            
+            // 更新年份
+            updateCurrentYear() {
+                DOMManager.updateElement('currentYear', 'textContent', new Date().getFullYear());
+            }
+            
+            // 输入验证
+            validateInputSize(text) {
+                if (text.length > MagnetExtractor.PERFORMANCE_LIMITS.MAX_INPUT_SIZE) {
+                    const mb = Math.round((text.length / 1024 / 1024) * 10) / 10;
+                    this.showToast(`输入内容过大（约 ${mb}MB），请减少内容大小`, 'error');
+                    return false;
+                }
+                return true;
+            }
+            
+            // 提取磁力链接 - 使用优化的正则处理
+            extractValidMagnets(text) {
+                return RegexOptimizer.extractMagnetsOptimized(
+                    text, 
+                    MagnetExtractor.PERFORMANCE_LIMITS.REGEX_CHUNK_SIZE
+                );
+            }
+            
+            // 磁力检测 - 优化性能
+            detectPotentialCrossLineMagnets(text) {
+                try {
+                    const lines = text.split(/\r?\n/);
+                    
+                    // 限制检查行数，避免性能问题
+                    const maxLines = Math.min(lines.length, 1000);
+                    
+                    for (let i = 0; i < maxLines; i++) {
+                        const line = lines[i].trim();
+                        
+                        if (line.includes('magnet:')) {
+                            const magnetMatches = line.match(/magnet:\?[^\s]*/g);
+                            if (magnetMatches) {
+                                for (const match of magnetMatches) {
+                                    if (match.length < MagnetExtractor.MAGNET_SPECS.MIN_STANDARD_LENGTH && 
+                                        match.includes('xt=urn:btih:')) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (line.length > 10 && line.length < 100 && 
+                            /^[a-fA-F0-9+/=&%_-]+$/.test(line) && 
+                            !line.includes('magnet:')) {
+                            const prevLine = i > 0 ? lines[i-1].trim() : '';
+                            const nextLine = i < maxLines - 1 ? lines[i+1].trim() : '';
+                            
+                            if (prevLine.includes('magnet:') || nextLine.includes('magnet:') ||
+                                prevLine.match(/[a-fA-F0-9]{20,}/) || nextLine.match(/[a-fA-F0-9]{20,}/)) {
+                                return true;
+                            }
+                        }
+                    }
+                    
+                    return false;
+                } catch (error) {
+                    console.warn('检测换行磁力时出错:', error);
+                    return false;
+                }
+            }
+            
+            // 验证磁力链接
+            validateMagnetLink(magnet) {
+                if (typeof magnet !== 'string') return false;
+                
+                if (magnet.match(/^magnet:\?xt=urn:btih:[A-Fa-f0-9]{40}$/i) || 
+                    magnet.match(/^magnet:\?xt=urn:btih:[A-Za-z2-7]{32}$/i)) {
+                    return true;
+                }
+                
+                const re = /^magnet:\?xt=urn:btih:(?:[A-Fa-f0-9]{40}|[A-Za-z2-7]{32})(?:[&?][^&\s]*)*$/i;
+                return re.test(magnet);
+            }
+            
+            // 生成结果
+            generateResults(magnets, rawText) {
+                const lines = rawText.split('\n');
+                
+                return magnets.map((magnet, index) => {
+                    let title = this.extractTitle(magnet, lines);
+                    return { magnet, title, index: index + 1 };
+                });
+            }
+            
+            // 提取标题
+            extractTitle(magnet, lines) {
+                // 从磁力链接本身提取标题
+                const dnMatch = magnet.match(/[&?]dn=([^&]*)/i);
+                if (dnMatch && dnMatch[1]) {
+                    try {
+                        let title = decodeURIComponent(dnMatch[1]);
+                        return this.sanitizeInput(title.trim());
+                    } catch (e) {
+                        return this.sanitizeInput(dnMatch[1].trim());
+                    }
+                }
+                
+                // 从包含磁力链接的行提取标题
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line.includes(magnet)) {
+                        const magnetPos = line.indexOf(magnet);
+                        const beforeMagnet = line.substring(0, magnetPos).trim();
+                        
+                        if (beforeMagnet && beforeMagnet.length > 2 && beforeMagnet.length < 200) {
+                            const cleanTitle = beforeMagnet.replace(/[^\w\s\-_.[\]()（）\u4e00-\u9fff]/gi, '').trim();
+                            if (cleanTitle && !cleanTitle.match(/^magnet:/i)) {
+                                return this.sanitizeInput(cleanTitle);
+                            }
+                        }
+                        
+                        // 检查上一行
+                        if (i > 0) {
+                            const prevLine = lines[i-1].trim();
+                            if (prevLine && prevLine.length > 2 && prevLine.length < 200 && !prevLine.includes('magnet:')) {
+                                const cleanTitle = prevLine.replace(/[^\w\s\-_.[\]()（）\u4e00-\u9fff]/gi, '').trim();
+                                if (cleanTitle) {
+                                    return this.sanitizeInput(cleanTitle);
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                return null;
+            }
+            
+            // 更新UI - 使用模块化渲染
+            updateUI(results) {
+                DOMManager.updateElement('magnetCount', 'textContent', this.#extractedMagnets.length);
+                DOMManager.updateElement('titleCount', 'textContent', results.filter(r => r.title).length);
+                
+                const hasContent = this.#extractedMagnets.length > 0;
+                DOMManager.setElementDisabled('copyAllBtn', !hasContent);
+                DOMManager.setElementDisabled('saveBtn', !hasContent);
+                
+                this.updateCrossLineMagnetButton();
+                
+                // 使用模块化渲染器
+                const resultArea = document.getElementById('resultArea');
+                UIRenderer.renderMagnetResults(results, resultArea);
+            }
+            
+            // 处理自动保存
+            handleAutoSave(results) {
+                if (this.#extractedMagnets.length === 0) {
+                    this.cancelAutoSave();
+                    return;
+                }
+                
+                const currentHash = this.generateContentHash(results);
+                if (currentHash !== this.#lastAutoSaveHash) {
+                    this.#lastAutoSaveHash = currentHash;
+                    this.scheduleAutoSave(results);
+                }
+            }
+            
+            // 取消自动保存
+            cancelAutoSave() {
+                if (this.#autoSaveTimer) {
+                    clearTimeout(this.#autoSaveTimer);
+                    this.#autoSaveTimer = null;
+                }
+                this.#lastAutoSaveHash = null;
+            }
+            
+            // 计划自动保存
+            scheduleAutoSave(results) {
+                this.cancelAutoSave();
+                this.#autoSaveTimer = setTimeout(() => {
+                    this.autoSaveToHistory(results);
+                    this.#autoSaveTimer = null;
+                }, MagnetExtractor.UI_CONSTANTS.AUTO_SAVE_DELAY);
+            }
+            
+            // 主要提取方法 - 重构后的简化版本
+            extractMagnets() {
+                const rawText = document.getElementById('inputText').value;
+                
+                if (!this.validateInputSize(rawText)) return;
+                
+                this.#hasPotentialCrossLineMagnets = this.detectPotentialCrossLineMagnets(rawText);
+                
+                const magnets = this.extractValidMagnets(rawText);
+                const uniqueMagnets = [...new Set(magnets.map(magnet => magnet.trim()))];
+                const validMagnets = uniqueMagnets.filter(magnet => this.validateMagnetLink(magnet));
+                
+                if (validMagnets.length > MagnetExtractor.PERFORMANCE_LIMITS.MAX_MAGNETS) {
+                    this.showToast(`找到${validMagnets.length}个磁力链接，已限制为${MagnetExtractor.PERFORMANCE_LIMITS.MAX_MAGNETS}个以提升性能`, 'warning');
+                    this.#extractedMagnets = validMagnets.slice(0, MagnetExtractor.PERFORMANCE_LIMITS.MAX_MAGNETS);
+                } else {
+                    this.#extractedMagnets = validMagnets;
+                }
+                
+                const results = this.generateResults(this.#extractedMagnets, rawText);
+                this.#extractedResults = results;
+                
+                this.updateUI(results);
+                this.handleAutoSave(results);
+            }
+            
+            // 防抖处理
+            debouncedExtractMagnets() {
+                if (this.#debounceTimer) {
+                    clearTimeout(this.#debounceTimer);
+                }
+                
+                this.#debounceTimer = setTimeout(() => {
+                    this.extractMagnets();
+                    this.#debounceTimer = null;
+                }, MagnetExtractor.PERFORMANCE_LIMITS.DEBOUNCE_DELAY);
+            }
+            
+            // 安全工具函数
+            sanitizeInput(input) {
+                if (typeof input !== 'string') return '';
+                
+                return input
+                    // 移除所有HTML标签
+                    .replace(/<[^>]*>/gi, '')
+                    // 移除JavaScript协议
+                    .replace(/javascript:/gi, '')
+                    // 移除所有事件处理器
+                    .replace(/on\w+\s*=/gi, '')
+                    // 移除data协议
+                    .replace(/data:/gi, '')
+                    // 移除vbscript协议
+                    .replace(/vbscript:/gi, '')
+                    // 移除expression CSS
+                    .replace(/expression\s*\(/gi, '')
+                    // 移除style属性中的危险内容
+                    .replace(/style\s*=\s*['"]*[^'"]*expression\s*\([^'"]*['"]/gi, '')
+                    .trim();
+            }
+            
+            // 新增：专门用于HTML属性值的转义
+            escapeHtmlAttribute(input) {
+                if (typeof input !== 'string') return '';
+                
+                return input
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#x27;');
+            }
+            
+            // 生成内容哈希值，用于判断内容是否变化（简化版）
+            generateContentHash(results) {
+            // 简化哈希算法，只基于磁力链接内容
+            try {
+                const content = results.map(r => r.magnet).sort().join('|');
+                let hash = 0;
+                for (let i = 0; i < content.length; i++) {
+                    const char = content.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // 转换为32位整数
+                }
+                return Math.abs(hash).toString(36);
+            } catch (e) {
+                // 降级方案
+                return btoa(JSON.stringify(results.map(r => r.magnet))).slice(0, 16);
+            }
+        }
+        
+            // 更新换行磁力识别按钮显示状态
+            updateCrossLineMagnetButton() {
+                if (this.#hasPotentialCrossLineMagnets) {
+                    DOMManager.showElement('crossLineMagnetBtn', 'flex');
+                    DOMManager.setElementDisabled('crossLineMagnetBtn', false);
+                } else {
+                    DOMManager.hideElement('crossLineMagnetBtn');
+                }
+            }
+            
+            // 处理换行磁力链接重组 - 修复版本
+            reconstructCrossLineMagnets(text) {
+                const reconstructedMagnets = [];
+                
+                try {
+                    const lines = text.split(/\r?\n/);
+                    let magnetBuffer = '';
+                    let collectingMagnet = false;
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        
+                        // 检查是否包含magnet:开头
+                        if (line.includes('magnet:?xt=urn:btih:')) {
+                            // 如果之前有未完成的磁力，先处理
+                            if (magnetBuffer && collectingMagnet) {
+                                const completed = this.processMagnetBuffer(magnetBuffer);
+                                if (completed) reconstructedMagnets.push(completed);
+                            }
+                            
+                            // 开始新的磁力收集
+                            const magnetIndex = line.indexOf('magnet:?xt=urn:btih:');
+                            magnetBuffer = line.substring(magnetIndex); // 从magnet:开始
+                            collectingMagnet = true;
+                            
+                            // 检查当前行是否已经是完整的磁力链接
+                            const hashPart = magnetBuffer.replace('magnet:?xt=urn:btih:', '');
+                            if (this.isValidHashLength(hashPart)) {
+                                const completed = this.processMagnetBuffer(magnetBuffer);
+                                if (completed) reconstructedMagnets.push(completed);
+                                magnetBuffer = '';
+                                collectingMagnet = false;
+                            }
+                        } else if (collectingMagnet && line.length > 0) {
+                            // 继续收集磁力片段
+                            if (/^[A-Fa-f0-9]+$/.test(line)) {
+                                // 纯哈希字符串，直接拼接
+                                magnetBuffer += line;
+                                
+                                // 检查是否达到有效长度
+                                const hashPart = magnetBuffer.replace('magnet:?xt=urn:btih:', '');
+                                if (this.isValidHashLength(hashPart)) {
+                                    const completed = this.processMagnetBuffer(magnetBuffer);
+                                    if (completed) reconstructedMagnets.push(completed);
+                                    magnetBuffer = '';
+                                    collectingMagnet = false;
+                                }
+                            } else if (line.includes('magnet:?xt=urn:btih:')) {
+                                // 新的磁力开始，先处理当前的
+                                if (magnetBuffer) {
+                                    const completed = this.processMagnetBuffer(magnetBuffer);
+                                    if (completed) reconstructedMagnets.push(completed);
+                                }
+                                
+                                // 开始新的磁力
+                                const magnetIndex = line.indexOf('magnet:?xt=urn:btih:');
+                                magnetBuffer = line.substring(magnetIndex);
+                                collectingMagnet = true;
+                            } else {
+                                // 非磁力内容，结束当前收集
+                                if (magnetBuffer) {
+                                    const completed = this.processMagnetBuffer(magnetBuffer);
+                                    if (completed) reconstructedMagnets.push(completed);
+                                }
+                                magnetBuffer = '';
+                                collectingMagnet = false;
+                            }
+                        }
+                    }
+                    
+                    // 处理最后一个磁力片段
+                    if (magnetBuffer && collectingMagnet) {
+                        const completed = this.processMagnetBuffer(magnetBuffer);
+                        if (completed) reconstructedMagnets.push(completed);
+                    }
+                    
+                } catch (error) {
+                    console.warn('重组换行磁力时出错:', error);
+                }
+                
+                return [...new Set(reconstructedMagnets)];
+            }
+            
+            // 检查哈希长度是否有效
+            isValidHashLength(hash) {
+                const cleanHash = hash.replace(/[^A-Fa-f0-9]/g, '');
+                return cleanHash.length === 40 || cleanHash.length === 32;
+            }
+            
+            // 处理磁力缓冲区，提取标准磁力部分 - 修复版本
+            processMagnetBuffer(buffer) {
+                if (!buffer || !buffer.includes('magnet:')) return null;
+                
+                try {
+                    // 清理缓冲区，移除空格和换行
+                    const cleaned = buffer.replace(/\s+/g, '').trim();
+                    
+                    // 提取magnet:?xt=urn:btih:后面的哈希
+                    const magnetMatch = cleaned.match(/magnet:\?xt=urn:btih:([A-Fa-f0-9]+)/i);
+                    if (magnetMatch && magnetMatch[1]) {
+                        const hash = magnetMatch[1];
+                        
+                        // 验证哈希长度
+                        if (hash.length === 40) {
+                            // SHA1哈希 (40位十六进制)
+                            return `magnet:?xt=urn:btih:${hash.toUpperCase()}`;
+                        } else if (hash.length === 32) {
+                            // Base32哈希 (32位)
+                            return `magnet:?xt=urn:btih:${hash}`;
+                        } else if (hash.length > 40) {
+                            // 截取前40位作为SHA1哈希
+                            return `magnet:?xt=urn:btih:${hash.substring(0, 40).toUpperCase()}`;
+                        }
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.warn('处理磁力缓冲区时出错:', error);
+                    return null;
+                }
+            }        // 处理换行磁力识别
+        processCrossLineMagnets() {
+            const rawText = document.getElementById('inputText').value;
+            if (!rawText.trim()) {
+                this.showToast('请先输入内容', 'warning');
+                return;
+            }
+            
+            const button = document.getElementById('crossLineMagnetBtn');
+            const originalText = button.innerHTML;
+            
+            try {
+                // 安全地更新按钮内容
+                button.innerHTML = '';
+                const spinner = DOMManager.createElement('i', {
+                    className: 'fas fa-spinner fa-spin mr-2'
+                });
+                button.appendChild(spinner);
+                button.appendChild(document.createTextNode('识别中...'));
+                button.disabled = true;
+                
+                // 重组换行磁力
+                const reconstructedMagnets = this.reconstructCrossLineMagnets(rawText);
+                
+                if (reconstructedMagnets.length === 0) {
+                    this.showToast('未识别到有效的换行磁力链接', 'info');
+                } else {
+                    // 验证重组的磁力链接
+                    const validReconstructed = reconstructedMagnets.filter(magnet => {
+                        return magnet.length >= MagnetExtractor.MAGNET_SPECS.MIN_STANDARD_LENGTH && 
+                               magnet.includes('xt=urn:btih:') &&
+                               this.validateMagnetLink(magnet);
+                    });
+                    
+                    if (validReconstructed.length > 0) {
+                        // 将重组的磁力添加到当前结果中（去重）
+                        const currentMagnets = new Set(this.#extractedMagnets);
+                        const newMagnets = validReconstructed.filter(magnet => !currentMagnets.has(magnet));
+                        
+                        if (newMagnets.length > 0) {
+                            this.#extractedMagnets.push(...newMagnets);
+                            
+                            // 重新生成结果
+                            const newResults = newMagnets.map((magnet, index) => ({
+                                magnet,
+                                title: `换行重组磁力 #${this.#extractedResults.length + index + 1}`,
+                                index: this.#extractedResults.length + index + 1,
+                                crossLineRecovered: true
+                            }));
+                            
+                            this.#extractedResults.push(...newResults);
+                            
+                            // 更新界面
+                            DOMManager.updateElement('magnetCount', 'textContent', this.#extractedMagnets.length);
+                            DOMManager.updateElement('titleCount', 'textContent', this.#extractedResults.filter(r => r.title).length);
+                            
+                            const resultArea = document.getElementById('resultArea');
+                            UIRenderer.renderMagnetResults(this.#extractedResults, resultArea);
+                            
+                            this.showToast(`成功识别并重组了 ${newMagnets.length} 个换行磁力链接！`, 'success');
+                        } else {
+                            this.showToast('识别到的换行磁力已存在于当前结果中', 'info');
+                        }
+                    } else {
+                        this.showToast('换行磁力重组后验证失败', 'warning');
+                    }
+                }
+            } catch (error) {
+                console.error('处理换行磁力时出错:', error);
+                this.showToast('处理换行磁力时出现错误', 'error');
+            } finally {
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, MagnetExtractor.UI_CONSTANTS.BUTTON_TIMEOUT);
+            }
+        }
+        
+        // 优化历史记录存储（内存管理）
+        optimizeHistoryStorage(history) {
+            // 限制数量
+            if (history.length > MagnetExtractor.PERFORMANCE_LIMITS.MAX_HISTORY_ITEMS) {
+                history = history.slice(0, MagnetExtractor.PERFORMANCE_LIMITS.MAX_HISTORY_ITEMS);
+            }
+            
+            // 检查存储大小
+            let jsonString = JSON.stringify(history);
+            if (jsonString.length > MagnetExtractor.PERFORMANCE_LIMITS.MAX_HISTORY_SIZE) {
+                // 如果太大，逐步删除最旧的记录直到符合限制
+                while (history.length > 1 && JSON.stringify(history).length > MagnetExtractor.PERFORMANCE_LIMITS.MAX_HISTORY_SIZE) {
+                    history.pop();
+                }
+                
+                // 如果还是太大，压缩预览文本
+                if (JSON.stringify(history).length > MagnetExtractor.PERFORMANCE_LIMITS.MAX_HISTORY_SIZE) {
+                    history.forEach(item => {
+                        if (item.preview && item.preview.length > 30) {
+                            item.preview = item.preview.substring(0, 30) + '...';
+                        }
+                    });
+                }
+            }
+            
+            return history;
+        }
+
+        // 复制单个磁力链接（改进版）
+        async copySingle(magnet, button) {
+            try {
+                await navigator.clipboard.writeText(magnet);
+                const originalText = button.innerHTML;
+                // 安全地更新按钮内容
+                button.innerHTML = '';
+                const checkIcon = DOMManager.createElement('i', {
+                    className: 'fas fa-check mr-1'
+                });
+                button.appendChild(checkIcon);
+                button.appendChild(document.createTextNode('已复制'));
+                button.classList.add('success-flash');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('success-flash');
+                }, 1500);
+                
+                this.showToast();
+            } catch (err) {
+                console.warn('剪切板API失败，尝试降级方案:', err);
+                this.fallbackCopy(magnet, button);
+            }
+        }
+
+        // 打开单个磁力链接
+        openSingle(magnet, button) {
+            try {
+                // 方式1：创建隐形链接触发点击（更接近用户点击行为）
+                const a = document.createElement('a');
+                a.href = magnet;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => document.body.removeChild(a), 0);
+
+                // UI 反馈
+                const originalText = button.innerHTML;
+                // 安全地更新按钮内容
+                button.innerHTML = '';
+                const linkIcon = DOMManager.createElement('i', {
+                    className: 'fas fa-external-link-alt mr-1'
+                });
+                button.appendChild(linkIcon);
+                button.appendChild(document.createTextNode('已尝试打开'));
+                button.classList.add('success-flash');
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('success-flash');
+                }, 1500);
+                this.showToast('已尝试打开磁力链接，若无响应请检查BT客户端或浏览器设置', 'info');
+            } catch (e) {
+                console.warn('打开磁力失败，降级为跳转:', e);
+                try {
+                    window.location.href = magnet;
+                } catch (e2) {
+                    console.error('跳转失败:', e2);
+                }
+            }
+        }
+        
+        // 降级复制方案
+        fallbackCopy(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const originalText = button.innerHTML;
+                // 安全地更新按钮内容
+                button.innerHTML = '';
+                const checkIcon = DOMManager.createElement('i', {
+                    className: 'fas fa-check mr-1'
+                });
+                button.appendChild(checkIcon);
+                button.appendChild(document.createTextNode('已复制'));
+                button.classList.add('success-flash');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('success-flash');
+                }, 1500);
+                
+                this.showToast();
+            } catch (fallbackErr) {
+                console.error('复制失败:', fallbackErr);
+                this.showToast('复制失败，请手动复制');
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // 复制全部磁力链接（改进版 - 保留完整参数）
+        async copyAllMagnets() {
+            if (this.#extractedMagnets.length === 0) return;
+            
+            // 复制完整磁力链接（包含所有参数）
+            const allMagnets = this.#extractedMagnets.join('\n');
+            const button = document.getElementById('copyAllBtn');
+            
+            try {
+                await navigator.clipboard.writeText(allMagnets);
+                const originalText = button.innerHTML;
+                // 安全地更新按钮内容
+                button.innerHTML = '';
+                const checkIcon = DOMManager.createElement('i', {
+                    className: 'fas fa-check mr-2'
+                });
+                button.appendChild(checkIcon);
+                button.appendChild(document.createTextNode('已复制'));
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, MagnetExtractor.UI_CONSTANTS.BUTTON_TIMEOUT);
+                
+                this.showToast(`成功复制 ${this.#extractedMagnets.length} 个磁力链接！`);
+            } catch (err) {
+                console.warn('剪切板API失败，尝试降级方案:', err);
+                this.fallbackCopy(allMagnets, button);
+            }
+        }
+
+        
+
+        // 手动保存到历史记录
+        saveToHistory() {
+            if (this.#extractedMagnets.length === 0) return;
+            
+            const historyItem = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString('zh-CN'),
+                count: this.#extractedMagnets.length,
+                titleCount: this.#extractedResults.filter(r => r.title).length,
+                magnets: [...this.#extractedMagnets],
+                results: [...this.#extractedResults],
+                saveType: 'manual',
+                preview: this.#extractedResults[0] ? 
+                    (this.#extractedResults[0].title || this.#extractedMagnets[0].substring(0, 50)) + 
+                    (this.#extractedMagnets[0].length > 50 ? '...' : '') : ''
+            };
+            
+            // 检查是否已存在相同内容的记录，避免重复
+            const existingIndex = this.#currentHistory.findIndex(item => {
+                return JSON.stringify(item.magnets) === JSON.stringify(historyItem.magnets);
+            });
+            
+            if (existingIndex > -1) {
+                // 如果存在，更新为手动保存
+                this.#currentHistory[existingIndex] = historyItem;
+            } else {
+                this.#currentHistory.unshift(historyItem);
+            }
+            
+            // 优化存储大小管理
+            this.#currentHistory = this.optimizeHistoryStorage(this.#currentHistory);
+            
+            localStorage.setItem('magnetHistory', JSON.stringify(this.#currentHistory));
+            this.renderHistory();
+            
+            const button = document.getElementById('saveBtn');
+            const originalText = button.innerHTML;
+            // 安全地更新按钮内容
+            button.innerHTML = '';
+            const checkIcon = DOMManager.createElement('i', {
+                className: 'fas fa-check mr-2'
+            });
+            button.appendChild(checkIcon);
+            button.appendChild(document.createTextNode('已保存'));
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+            }, MagnetExtractor.UI_CONSTANTS.BUTTON_TIMEOUT);
+            
+            this.showToast('已手动保存到历史记录！');
+        }
+        
+        // 自动保存到历史记录
+        autoSaveToHistory(results) {
+            if (this.#extractedMagnets.length === 0) return;
+            
+            const historyItem = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString('zh-CN'),
+                count: this.#extractedMagnets.length,
+                titleCount: results.filter(r => r.title).length,
+                magnets: [...this.#extractedMagnets],
+                results: [...results],
+                saveType: 'auto',
+                preview: results[0] ? 
+                    (results[0].title || this.#extractedMagnets[0].substring(0, 50)) + 
+                    (this.#extractedMagnets[0].length > 50 ? '...' : '') : ''
+            };
+            
+            // 检查是否已存在相同内容的自动保存记录
+            const existingIndex = this.#currentHistory.findIndex(item => {
+                return JSON.stringify(item.magnets) === JSON.stringify(historyItem.magnets) && item.saveType === 'auto';
+            });
+            
+            if (existingIndex === -1) {
+                this.#currentHistory.unshift(historyItem);
+                
+                // 优化存储大小管理
+                this.#currentHistory = this.optimizeHistoryStorage(this.#currentHistory);
+                
+                localStorage.setItem('magnetHistory', JSON.stringify(this.#currentHistory));
+                this.renderHistory();
+            }
+        }
+
+        // 渲染历史记录 - 使用模块化渲染器
+        renderHistory() {
+            const historyArea = document.getElementById('historyArea');
+            UIRenderer.renderHistoryOptimized(this.#currentHistory, historyArea);
+        }
+
+        // 从历史记录加载
+        loadFromHistory(id) {
+            const historyItem = this.#currentHistory.find(item => item.id === id);
+            if (historyItem) {
+                // 如果有完整的results数据，使用results重建输入内容
+                if (historyItem.results && historyItem.results.length > 0) {
+                    const reconstructedText = historyItem.results.map(result => {
+                        if (result.title) {
+                            return `${result.title}\n${result.magnet}`;
+                        } else {
+                            return result.magnet;
+                        }
+                    }).join('\n\n');
+                    document.getElementById('inputText').value = reconstructedText;
+                } else {
+                    // 向后兼容旧的历史记录格式
+                    document.getElementById('inputText').value = historyItem.magnets.join('\n\n');
+                }
+                
+                this.extractMagnets();
+                this.showToast('已加载历史记录！');
+            }
+        }
+
+        // 清理所有定时器和引用（内存管理）
+        cleanup() {
+            if (this.#debounceTimer) {
+                clearTimeout(this.#debounceTimer);
+                this.#debounceTimer = null;
+            }
+            if (this.#autoSaveTimer) {
+                clearTimeout(this.#autoSaveTimer);
+                this.#autoSaveTimer = null;
+            }
+            
+            // 清理大型数据引用
+            this.#extractedMagnets.length = 0;
+            this.#extractedResults.length = 0;
+            this.#lastAutoSaveHash = null;
+            this.#hasPotentialCrossLineMagnets = false;
+        }
+        
+        // 清空输入（带内存清理）
+        clearInput() {
+            document.getElementById('inputText').value = '';
+            this.cleanup(); // 清理内存
+            this.updateCrossLineMagnetButton(); // 更新按钮状态
+            this.extractMagnets();
+        }
+
+        // 清空历史记录
+        clearHistory() {
+            if (confirm('确定要清空所有历史记录吗？')) {
+                this.#currentHistory = [];
+                localStorage.removeItem('magnetHistory');
+                this.renderHistory();
+                this.showToast('历史记录已清空！');
+            }
+        }
+
+        // 显示提示（支持不同类型）
+        showToast(message = '复制成功！', type = 'success') {
+            const toast = document.getElementById('copyToast');
+            
+            // 根据类型设置样式和图标
+            let icon = 'fas fa-check';
+            let bgColor = 'bg-green-500';
+            
+            switch (type) {
+                case 'error':
+                    icon = 'fas fa-exclamation-triangle';
+                    bgColor = 'bg-red-500';
+                    break;
+                case 'warning':
+                    icon = 'fas fa-exclamation-circle';
+                    bgColor = 'bg-yellow-500';
+                    break;
+                case 'info':
+                    icon = 'fas fa-info-circle';
+                    bgColor = 'bg-blue-500';
+                    break;
+                default:
+                    icon = 'fas fa-check';
+                    bgColor = 'bg-green-500';
+            }
+            
+            // 更新样式和内容
+            toast.className = `fixed bottom-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300 z-50`;
+            toast.innerHTML = `<i class="${icon} mr-2"></i>${message}`;
+            
+            toast.classList.remove('translate-y-full', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-full', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, type === 'error' ? MagnetExtractor.UI_CONSTANTS.TOAST_ERROR_TIMEOUT : MagnetExtractor.UI_CONSTANTS.TOAST_SUCCESS_TIMEOUT);
+        }
+        
+        // 从localStorage加载历史记录
+        loadHistory() {
+            const saved = localStorage.getItem('magnetHistory');
+            if (saved) {
+                this.#currentHistory = JSON.parse(saved);
+                this.renderHistory();
+            }
+        }
+    }
+
+    // 全局函数 - 用于HTML中的内联调用
+    let magnetExtractor;
+
+    function debouncedExtractMagnets() {
+        if (magnetExtractor) {
+            magnetExtractor.debouncedExtractMagnets();
+        }
+    }
+
+    function processCrossLineMagnets() {
+        if (magnetExtractor) {
+            magnetExtractor.processCrossLineMagnets();
+        }
+    }
+
+    function copyAllMagnets() {
+        if (magnetExtractor) {
+            magnetExtractor.copyAllMagnets();
+        }
+    }
+
+    function saveToHistory() {
+        if (magnetExtractor) {
+            magnetExtractor.saveToHistory();
+        }
+    }
+
+    function clearInput() {
+        if (magnetExtractor) {
+            magnetExtractor.clearInput();
+        }
+    }
+
+    function clearHistory() {
+        if (magnetExtractor) {
+            magnetExtractor.clearHistory();
+        }
+    }
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 创建磁力提取器实例
+        magnetExtractor = new MagnetExtractor();
+    });
+    </script>
+</body>
+</html>
