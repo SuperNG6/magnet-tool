@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';">
     
     <!-- iPhone Safari状态栏适配 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,7 +15,10 @@
     <meta name="apple-mobile-web-app-title" content="智能磁力提取器">
     
     <!-- 网站图标 -->
-    <!-- 图标将通过 JavaScript 动态生成以匹配主题 -->
+    <link rel="icon" type="image/webp" sizes="64x64" href="https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/logo.webp">
+    <link rel="shortcut icon" type="image/webp" href="https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/logo.webp">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/logo.webp">
+    <link rel="mask-icon" href="https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/safari-pinned-tab.svg" color="#4a5d3a">
     
     <title>智能磁力提取工具</title>
     <!-- 设计尺寸：响应式网页 -->
@@ -354,7 +357,7 @@
             height: 52px;
             border-radius: 16px;
             border: none;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(12px) saturate(120%);
             -webkit-backdrop-filter: blur(12px) saturate(120%);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -372,7 +375,7 @@
         .theme-toggle:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 3px 6px rgba(0, 0, 0, 0.15);
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.65);
             backdrop-filter: blur(16px) saturate(130%);
             -webkit-backdrop-filter: blur(16px) saturate(130%);
         }
@@ -383,14 +386,14 @@
         }
 
         [data-theme="dark"] .theme-toggle {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: var(--color-text);
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         [data-theme="dark"] .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 3px 6px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(16px) saturate(130%);
             -webkit-backdrop-filter: blur(16px) saturate(130%);
@@ -2173,49 +2176,20 @@
         
         // 更新网站图标以匹配页面顶部设计
         function updateFavicon(theme) {
-            // 移除现有的图标
+            // 移除现有的图标，确保只有最新的资源
             const existingIcons = document.querySelectorAll('link[rel*="icon"]');
             existingIcons.forEach(icon => icon.remove());
-            
-            // 根据主题选择颜色 - 与页面顶部保持一致
-            let bgColors, magnetColor, strokeColor;
-            
-            if (theme === 'dark') {
-                // 夜间模式：保持琥珀色调但适应深色背景
-                bgColors = {
-                    start: '%23451a03',  // 琥珀-900
-                    end: '%23d97706'     // 琥珀-600
-                };
-                magnetColor = '%23fbbf24';  // 琥珀-400
-                strokeColor = '%2392400e';  // 琥珀-800
-            } else {
-                // 日间模式：与页面顶部的琥珀色渐变保持一致
-                bgColors = {
-                    start: '%23fef3c7',  // 琥珀-100
-                    end: '%23fed7aa'     // 橙-100
-                };
-                magnetColor = '%23d97706';  // 琥珀-600
-                strokeColor = '%23f59e0b';  // 琥珀-500
-            }
-            
-            // 创建简洁的磁铁图标SVG - 使用FontAwesome磁铁的简化版本
-            const createIconSVG = (size) => {
-                const iconSize = size * 0.5;
-                const centerX = size / 2;
-                const centerY = size / 2;
-                const cornerRadius = size * 0.25;
-                
-                return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${size} ${size}'><defs><linearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:${bgColors.start};stop-opacity:1' /><stop offset='100%25' style='stop-color:${bgColors.end};stop-opacity:1' /></linearGradient></defs><rect width='${size}' height='${size}' rx='${cornerRadius}' fill='url(%23bg)' stroke='${strokeColor}' stroke-width='${Math.max(1, size * 0.02)}'/><g transform='translate(${centerX - iconSize/2},${centerY - iconSize/2})'><path d='M${iconSize * 0.2} ${iconSize * 0.15}h${iconSize * 0.25}v${iconSize * 0.2}h-${iconSize * 0.1}c-${iconSize * 0.08} 0-${iconSize * 0.15} ${iconSize * 0.07}-${iconSize * 0.15} ${iconSize * 0.15}v${iconSize * 0.1}c0 ${iconSize * 0.08} ${iconSize * 0.07} ${iconSize * 0.15} ${iconSize * 0.15} ${iconSize * 0.15}h${iconSize * 0.1}v${iconSize * 0.2}h-${iconSize * 0.25}c-${iconSize * 0.11} 0-${iconSize * 0.2}-${iconSize * 0.09}-${iconSize * 0.2}-${iconSize * 0.2}v-${iconSize * 0.5}c0-${iconSize * 0.11} ${iconSize * 0.09}-${iconSize * 0.2} ${iconSize * 0.2}-${iconSize * 0.2}z' fill='${magnetColor}'/><path d='M${iconSize * 0.55} ${iconSize * 0.15}h${iconSize * 0.25}c${iconSize * 0.11} 0 ${iconSize * 0.2} ${iconSize * 0.09} ${iconSize * 0.2} ${iconSize * 0.2}v${iconSize * 0.5}c0 ${iconSize * 0.11}-${iconSize * 0.09} ${iconSize * 0.2}-${iconSize * 0.2} ${iconSize * 0.2}h-${iconSize * 0.25}v-${iconSize * 0.2}h${iconSize * 0.1}c${iconSize * 0.08} 0 ${iconSize * 0.15}-${iconSize * 0.07} ${iconSize * 0.15}-${iconSize * 0.15}v-${iconSize * 0.1}c0-${iconSize * 0.08}-${iconSize * 0.07}-${iconSize * 0.15}-${iconSize * 0.15}-${iconSize * 0.15}h-${iconSize * 0.1}v-${iconSize * 0.2}z' fill='${magnetColor}'/></g></svg>`;
-            };
-            
-            // 添加各种图标
+
+            const iconUrl = 'https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/favicon.png';
+            const appleIconUrl = 'https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/apple-touch-icon.png';
+
+            // 为主要浏览器（包括Safari）设置统一的图标资源
             const icons = [
-                { rel: 'icon', type: 'image/x-icon', href: createIconSVG(32) },
-                { rel: 'shortcut icon', href: createIconSVG(32) },
-                { rel: 'icon', type: 'image/svg+xml', sizes: 'any', href: createIconSVG(100) },
-                { rel: 'apple-touch-icon', href: createIconSVG(180) }
+                { rel: 'icon', href: iconUrl, type: 'image/png', sizes: '64x64' },
+                { rel: 'shortcut icon', href: iconUrl, type: 'image/png' },
+                { rel: 'apple-touch-icon', href: appleIconUrl, sizes: '180x180' }
             ];
-            
+
             icons.forEach(iconData => {
                 const link = document.createElement('link');
                 Object.entries(iconData).forEach(([key, value]) => {
