@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';">
+    
+    <!-- iPhone Safari状态栏适配 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <!-- theme-color 将通过JavaScript动态设置 -->
+    
+    <!-- 更好的移动端体验 -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-title" content="智能磁力提取器">
+    
+    <!-- 网站图标 -->
+    <!-- 图标将通过 JavaScript 动态生成以匹配主题 -->
+    
     <title>智能磁力提取工具</title>
     <!-- 设计尺寸：响应式网页 -->
     <!-- 产品类型：磁力链接提取工具 -->
@@ -2058,22 +2071,24 @@
         const themeIcon = document.getElementById('themeIcon');
         const THEME_KEY = 'magnet-tool-theme';
         
-        // 获取保存的主题偏好，默认跟随系统
-        function getSavedTheme() {
+        // 获取当前应该使用的主题
+        function getCurrentTheme() {
+            // 首先检查用户是否有手动设置的偏好
             try {
                 const saved = localStorage.getItem(THEME_KEY);
-                if (saved && (saved === 'light' || saved === 'dark')) {
+                if (saved === 'light' || saved === 'dark') {
                     return saved;
                 }
-                // 如果没有保存的偏好，检测系统偏好
-                return getSystemTheme();
             } catch (e) {
-                return getSystemTheme();
+                // 读取失败时降级到系统主题
             }
+            
+            // 没有手动设置或读取失败时，跟随系统
+            return getSystemTheme();
         }
         
-        // 保存主题偏好
-        function saveTheme(theme) {
+        // 保存用户手动设置的主题
+        function saveUserTheme(theme) {
             try {
                 localStorage.setItem(THEME_KEY, theme);
             } catch (e) {
@@ -2094,31 +2109,146 @@
             // 更新 DOM
             document.documentElement.setAttribute('data-theme', theme);
             
+            // 更新iPhone Safari状态栏颜色
+            updateStatusBarColor(theme);
+            
             // 更新图标 - 显示"下一个状态"
             updateThemeIcon(theme);
         }
         
-        // 更新主题图标 - 显示下一个可切换的状态
+        // 更新iPhone Safari状态栏颜色
+        function updateStatusBarColor(theme) {
+            // 移除现有的theme-color meta标签
+            const existingThemeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
+            existingThemeColorMetas.forEach(meta => meta.remove());
+            
+            // 根据主题设置状态栏颜色
+            const themeColors = {
+                light: '#fefcf7',  // 日间模式：温暖米白色
+                dark: '#0f1419'    // 夜间模式：深蓝灰色
+            };
+            
+            // 创建新的theme-color meta标签
+            const themeColorMeta = document.createElement('meta');
+            themeColorMeta.name = 'theme-color';
+            themeColorMeta.content = themeColors[theme] || themeColors.light;
+            document.head.appendChild(themeColorMeta);
+            
+            // 同时更新apple-mobile-web-app-status-bar-style
+            let statusBarStyleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+            if (!statusBarStyleMeta) {
+                statusBarStyleMeta = document.createElement('meta');
+                statusBarStyleMeta.name = 'apple-mobile-web-app-status-bar-style';
+                document.head.appendChild(statusBarStyleMeta);
+            }
+            
+            // 根据主题设置状态栏样式
+            // 在iOS Safari中，使用 'black-translucent' 可以让状态栏文字变为白色
+            // 'default' 会让状态栏文字为黑色
+            if (theme === 'dark') {
+                statusBarStyleMeta.content = 'black-translucent';
+            } else {
+                statusBarStyleMeta.content = 'default';
+            }
+            
+            // 更新网站图标以匹配主题
+            updateFavicon(theme);
+            
+            // 添加额外的iOS Safari优化
+            // 为了确保在iOS Safari中状态栏颜色正确显示
+            if (typeof window !== 'undefined' && window.navigator && /iPad|iPhone|iPod/.test(window.navigator.userAgent)) {
+                // 强制触发iOS Safari重新渲染状态栏
+                setTimeout(() => {
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                        const content = viewport.getAttribute('content');
+                        viewport.setAttribute('content', content + ', minimal-ui');
+                        setTimeout(() => {
+                            viewport.setAttribute('content', content);
+                        }, 10);
+                    }
+                }, 50);
+            }
+        }
+        
+        // 更新网站图标以匹配页面顶部设计
+        function updateFavicon(theme) {
+            // 移除现有的图标
+            const existingIcons = document.querySelectorAll('link[rel*="icon"]');
+            existingIcons.forEach(icon => icon.remove());
+            
+            // 根据主题选择颜色 - 与页面顶部保持一致
+            let bgColors, magnetColor, strokeColor;
+            
+            if (theme === 'dark') {
+                // 夜间模式：保持琥珀色调但适应深色背景
+                bgColors = {
+                    start: '%23451a03',  // 琥珀-900
+                    end: '%23d97706'     // 琥珀-600
+                };
+                magnetColor = '%23fbbf24';  // 琥珀-400
+                strokeColor = '%2392400e';  // 琥珀-800
+            } else {
+                // 日间模式：与页面顶部的琥珀色渐变保持一致
+                bgColors = {
+                    start: '%23fef3c7',  // 琥珀-100
+                    end: '%23fed7aa'     // 橙-100
+                };
+                magnetColor = '%23d97706';  // 琥珀-600
+                strokeColor = '%23f59e0b';  // 琥珀-500
+            }
+            
+            // 创建简洁的磁铁图标SVG - 使用FontAwesome磁铁的简化版本
+            const createIconSVG = (size) => {
+                const iconSize = size * 0.5;
+                const centerX = size / 2;
+                const centerY = size / 2;
+                const cornerRadius = size * 0.25;
+                
+                return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${size} ${size}'><defs><linearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:${bgColors.start};stop-opacity:1' /><stop offset='100%25' style='stop-color:${bgColors.end};stop-opacity:1' /></linearGradient></defs><rect width='${size}' height='${size}' rx='${cornerRadius}' fill='url(%23bg)' stroke='${strokeColor}' stroke-width='${Math.max(1, size * 0.02)}'/><g transform='translate(${centerX - iconSize/2},${centerY - iconSize/2})'><path d='M${iconSize * 0.2} ${iconSize * 0.15}h${iconSize * 0.25}v${iconSize * 0.2}h-${iconSize * 0.1}c-${iconSize * 0.08} 0-${iconSize * 0.15} ${iconSize * 0.07}-${iconSize * 0.15} ${iconSize * 0.15}v${iconSize * 0.1}c0 ${iconSize * 0.08} ${iconSize * 0.07} ${iconSize * 0.15} ${iconSize * 0.15} ${iconSize * 0.15}h${iconSize * 0.1}v${iconSize * 0.2}h-${iconSize * 0.25}c-${iconSize * 0.11} 0-${iconSize * 0.2}-${iconSize * 0.09}-${iconSize * 0.2}-${iconSize * 0.2}v-${iconSize * 0.5}c0-${iconSize * 0.11} ${iconSize * 0.09}-${iconSize * 0.2} ${iconSize * 0.2}-${iconSize * 0.2}z' fill='${magnetColor}'/><path d='M${iconSize * 0.55} ${iconSize * 0.15}h${iconSize * 0.25}c${iconSize * 0.11} 0 ${iconSize * 0.2} ${iconSize * 0.09} ${iconSize * 0.2} ${iconSize * 0.2}v${iconSize * 0.5}c0 ${iconSize * 0.11}-${iconSize * 0.09} ${iconSize * 0.2}-${iconSize * 0.2} ${iconSize * 0.2}h-${iconSize * 0.25}v-${iconSize * 0.2}h${iconSize * 0.1}c${iconSize * 0.08} 0 ${iconSize * 0.15}-${iconSize * 0.07} ${iconSize * 0.15}-${iconSize * 0.15}v-${iconSize * 0.1}c0-${iconSize * 0.08}-${iconSize * 0.07}-${iconSize * 0.15}-${iconSize * 0.15}-${iconSize * 0.15}h-${iconSize * 0.1}v-${iconSize * 0.2}z' fill='${magnetColor}'/></g></svg>`;
+            };
+            
+            // 添加各种图标
+            const icons = [
+                { rel: 'icon', type: 'image/x-icon', href: createIconSVG(32) },
+                { rel: 'shortcut icon', href: createIconSVG(32) },
+                { rel: 'icon', type: 'image/svg+xml', sizes: 'any', href: createIconSVG(100) },
+                { rel: 'apple-touch-icon', href: createIconSVG(180) }
+            ];
+            
+            icons.forEach(iconData => {
+                const link = document.createElement('link');
+                Object.entries(iconData).forEach(([key, value]) => {
+                    link.setAttribute(key, value);
+                });
+                document.head.appendChild(link);
+            });
+        }
+        
+        // 更新主题图标 - 显示相反状态的按钮
         function updateThemeIcon(currentTheme) {
             themeIcon.className = '';
             
             if (currentTheme === 'dark') {
-                // 当前是夜间模式，按钮显示太阳（表示点击后切换到日间模式）
+                // 当前是夜间模式，显示太阳按钮（点击切换到日间）
                 themeIcon.classList.add('fas', 'fa-sun');
                 themeToggle.title = '切换到日间模式';
             } else {
-                // 当前是日间模式，按钮显示月亮（表示点击后切换到夜间模式）
+                // 当前是日间模式，显示月亮按钮（点击切换到夜间）
                 themeIcon.classList.add('fas', 'fa-moon');
                 themeToggle.title = '切换到夜间模式';
             }
         }
         
-        // 切换主题：light <-> dark
+        // 切换主题：简单的两态切换
         function toggleTheme() {
-            const currentTheme = getSavedTheme();
+            const currentTheme = getCurrentTheme();
             const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
             
-            saveTheme(nextTheme);
+            // 保存用户的选择
+            saveUserTheme(nextTheme);
+            
+            // 应用新主题
             applyTheme(nextTheme);
             
             // 显示切换提示
@@ -2139,18 +2269,32 @@
             }
         }
         
-        // 监听系统主题变化（仅在用户没有手动设置时生效）
+        // 监听系统主题变化（总是响应系统变化）
         function watchSystemTheme() {
             if (window.matchMedia) {
                 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
                 
                 const handleChange = () => {
-                    // 检查用户是否有手动设置的偏好
-                    const savedTheme = localStorage.getItem(THEME_KEY);
-                    if (!savedTheme) {
-                        // 没有手动设置，跟随系统
-                        const systemTheme = getSystemTheme();
+                    // 获取用户设置的主题（如果有）
+                    const userTheme = localStorage.getItem(THEME_KEY);
+                    const systemTheme = getSystemTheme();
+                    
+                    // 如果用户没有设置过主题，或者系统主题变化了，就应用系统主题
+                    if (!userTheme) {
+                        // 用户从未设置过，直接跟随系统
                         applyTheme(systemTheme);
+                    } else {
+                        // 用户设置过主题，但系统变化时也要响应
+                        // 这是行业标准行为：临时覆盖不阻止系统变化的响应
+                        applyTheme(systemTheme);
+                        
+                        // 可选：显示系统主题变化提示
+                        if (magnetExtractor && magnetExtractor.showToast) {
+                            magnetExtractor.showToast(
+                                `系统主题已变更，跟随切换到${systemTheme === 'dark' ? '夜间' : '日间'}模式 🔄`, 
+                                'info'
+                            );
+                        }
                     }
                 };
                 
@@ -2164,8 +2308,11 @@
         
         // 初始化主题
         function init() {
-            const savedTheme = getSavedTheme();
-            applyTheme(savedTheme);
+            // 获取当前应该使用的主题
+            const currentTheme = getCurrentTheme();
+            applyTheme(currentTheme);
+            
+            // 开始监听系统主题变化
             watchSystemTheme();
         }
         
