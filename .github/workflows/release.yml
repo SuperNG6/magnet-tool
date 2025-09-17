@@ -1,0 +1,36 @@
+name: Build Single File Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: build
+        run: npm install
+
+      - name: Build single file
+        working-directory: build
+        run: npm run build:single
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/dist/magnet-tool.html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

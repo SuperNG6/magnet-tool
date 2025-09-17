@@ -1,1 +1,4 @@
 .vscode/settings.json
+build/node_modules/
+build/dist/
+package-lock.json
