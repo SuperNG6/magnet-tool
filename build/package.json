@@ -3,14 +3,17 @@
   "version": "1.0.0",
   "description": "Build standalone HTML file for magnet-tool",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "node build-standalone.js",
     "download-deps": "node download-dependencies.js"
   },
   "dependencies": {},
   "devDependencies": {
-    "node-fetch": "^2.6.1",
-    "cheerio": "^1.0.0-rc.12",
-    "fs-extra": "^11.1.1"
+    "node-fetch": "2.6.7",
+    "cheerio": "1.0.0-rc.12",
+    "fs-extra": "11.1.1"
   }
 }
