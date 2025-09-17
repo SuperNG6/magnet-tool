@@ -1,0 +1,100 @@
+name: Build Standalone Version
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'build/package.json'
+        
+    - name: Install dependencies
+      working-directory: ./build
+      run: npm ci
+      
+    - name: Download external dependencies
+      working-directory: ./build
+      run: npm run download-deps
+      
+    - name: Build standalone version
+      working-directory: ./build
+      run: npm run build
+      
+    - name: List build outputs
+      working-directory: ./build
+      run: |
+        echo "=== Build directory contents ==="
+        ls -la
+        echo "=== Dist directory contents ==="
+        ls -la dist/
+        echo "=== Standalone file info ==="
+        file dist/magnet-tool-standalone.html
+        wc -c dist/magnet-tool-standalone.html
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: standalone-build
+        path: build/dist/magnet-tool-standalone.html
+        retention-days: 90
+        
+    # 只在打tag时创建release
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/dist/magnet-tool-standalone.html
+        name: Release ${{ github.ref_name }}
+        body: |
+          ## 磁力提取工具单文件版本
+          
+          这是完全独立的单文件版本，包含所有依赖，可以完全离线使用。
+          
+          ### 📦 包含的依赖
+          - TailwindCSS (完整版)
+          - DOMPurify v3.0.6
+          - FontAwesome v6.4.0 (含字体文件)
+          - 本地图片文件 (base64编码)
+          
+          ### 🚀 使用方法
+          1. 下载 `magnet-tool-standalone.html` 文件
+          2. 在浏览器中打开即可使用
+          3. 无需网络连接，完全离线运行
+          
+          ### ✨ 功能特性
+          - 智能磁力链接提取
+          - 批量处理和跨行重组
+          - 历史记录管理
+          - 安全的XSS防护
+          - 响应式设计
+          
+          构建时间: ${{ github.event.head_commit.timestamp }}
+          提交SHA: ${{ github.sha }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    # 在每次push到main时也上传，但不创建release
+    - name: Upload to latest artifacts (main branch)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: latest-standalone
+        path: build/dist/magnet-tool-standalone.html
+        retention-days: 30
