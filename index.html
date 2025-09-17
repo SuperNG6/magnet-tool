@@ -25,6 +25,7 @@
     <!-- 产品类型：磁力链接提取工具 -->
     <!-- 核心技术栈 -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" integrity="sha384-cwS6YdhLI7XS60eoDiC+egV0qHp8zI+Cms46R0nbn8JrmoAzV9uFL60etMZhAnSu" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     
     <style>
@@ -544,7 +545,7 @@
                                 <i class="fas fa-paste mr-2 text-amber-600"></i>
                                 粘贴内容
                             </h2>
-                            <button onclick="clearInput()" class="text-sm text-gray-500 hover:text-red-500 transition-colors">
+                            <button id="clearInputBtn" class="text-sm text-gray-500 hover:text-red-500 transition-colors">
                                 <i class="fas fa-times mr-1"></i>清空
                             </button>
                         </div>
@@ -574,7 +575,6 @@
                             </div>
                             <div class="flex space-x-3">
                                 <button 
-                                    onclick="processCrossLineMagnets()" 
                                     class="btn-purple flex items-center" 
                                     id="crossLineMagnetBtn" 
                                     style="display: none;" 
@@ -584,7 +584,6 @@
                                     识别换行磁力
                                 </button>
                                 <button 
-                                    onclick="copyAllMagnets()" 
                                     class="btn-accent flex items-center" 
                                     id="copyAllBtn" 
                                     disabled 
@@ -594,7 +593,6 @@
                                     复制全部
                                 </button>
                                 <button 
-                                    onclick="saveToHistory()" 
                                     class="btn-primary flex items-center" 
                                     id="saveBtn" 
                                     disabled
@@ -629,7 +627,7 @@
                                 <i class="fas fa-history mr-2 text-blue-600"></i>
                                 历史记录
                             </h2>
-                            <button onclick="clearHistory()" class="text-sm text-gray-500 hover:text-red-500 transition-colors">
+                            <button id="clearHistoryBtn" class="text-sm text-gray-500 hover:text-red-500 transition-colors">
                                 <i class="fas fa-trash mr-1"></i>清空
                             </button>
                         </div>
@@ -782,13 +780,13 @@
             }
             
             static #generateHash(text) {
-                let hash = 0;
-                for (let i = 0; i < Math.min(text.length, 1000); i++) { // 只使用前1000字符生成哈希
-                    const char = text.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash = hash & hash;
+                // FNV-1a 32位哈希，覆盖整个输入以避免漏检新增内容
+                let hash = 0x811c9dc5;
+                for (let i = 0; i < text.length; i++) {
+                    hash ^= text.charCodeAt(i);
+                    hash = Math.imul(hash, 0x01000193) >>> 0;
                 }
-                return Math.abs(hash).toString(36);
+                return `${hash.toString(36)}-${text.length.toString(36)}`;
             }
         }
 
@@ -1081,7 +1079,7 @@
             };
             
             static MAGNET_SPECS = {
-                MIN_STANDARD_LENGTH: 60,
+                MIN_STANDARD_LENGTH: 52,
                 STANDARD_PREFIX: 'magnet:?xt=urn:btih:',
                 HASH_LENGTH_40: 40,
                 HASH_LENGTH_32: 32
@@ -1178,7 +1176,8 @@
             // 页面可见性变化处理
             handleVisibilityChange() {
                 if (document.hidden) {
-                    this.cleanup();
+                    // 在标签页不可见时暂停自动保存，保留已提取结果
+                    this.cancelAutoSave();
                 }
             }
             
@@ -1216,6 +1215,8 @@
                     for (let i = 0; i < maxLines; i++) {
                         const line = lines[i].trim();
                         
+                        if (!line) continue;
+
                         if (line.includes('magnet:')) {
                             const magnetMatches = line.match(/magnet:\?[^\s]*/g);
                             if (magnetMatches) {
@@ -1228,15 +1229,19 @@
                             }
                         }
                         
-                        if (line.length > 10 && line.length < 100 && 
-                            /^[a-fA-F0-9+/=&%_-]+$/.test(line) && 
-                            !line.includes('magnet:')) {
-                            const prevLine = i > 0 ? lines[i-1].trim() : '';
-                            const nextLine = i < maxLines - 1 ? lines[i+1].trim() : '';
-                            
-                            if (prevLine.includes('magnet:') || nextLine.includes('magnet:') ||
-                                prevLine.match(/[a-fA-F0-9]{20,}/) || nextLine.match(/[a-fA-F0-9]{20,}/)) {
-                                return true;
+                        if (!line.includes('magnet:')) {
+                            const hashCandidate = line.replace(/=+$/, '');
+                            const looksLikeHash = this.isPotentialHashFragment(hashCandidate);
+                            const looksLikeParam = this.isMagnetParameterFragment(line);
+
+                            if ((looksLikeHash || looksLikeParam) && line.length < 120) {
+                                const prevLine = i > 0 ? lines[i-1].trim() : '';
+                                const nextLine = i < maxLines - 1 ? lines[i+1].trim() : '';
+
+                                if (prevLine.includes('magnet:') || nextLine.includes('magnet:') ||
+                                    this.isPotentialHashFragment(prevLine) || this.isPotentialHashFragment(nextLine)) {
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -1404,21 +1409,21 @@
             // 安全工具函数
             sanitizeInput(input) {
                 if (typeof input !== 'string') return '';
-                
+
+                if (typeof DOMPurify !== 'undefined') {
+                    return DOMPurify.sanitize(input, {
+                        ALLOWED_TAGS: [],
+                        ALLOWED_ATTR: []
+                    }).trim();
+                }
+
                 return input
-                    // 移除所有HTML标签
                     .replace(/<[^>]*>/gi, '')
-                    // 移除JavaScript协议
                     .replace(/javascript:/gi, '')
-                    // 移除所有事件处理器
                     .replace(/on\w+\s*=/gi, '')
-                    // 移除data协议
                     .replace(/data:/gi, '')
-                    // 移除vbscript协议
                     .replace(/vbscript:/gi, '')
-                    // 移除expression CSS
                     .replace(/expression\s*\(/gi, '')
-                    // 移除style属性中的危险内容
                     .replace(/style\s*=\s*['"]*[^'"]*expression\s*\([^'"]*['"]/gi, '')
                     .trim();
             }
@@ -1471,74 +1476,69 @@
                     const lines = text.split(/\r?\n/);
                     let magnetBuffer = '';
                     let collectingMagnet = false;
-                    
-                    for (let i = 0; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        
-                        // 检查是否包含magnet:开头
-                        if (line.includes('magnet:?xt=urn:btih:')) {
-                            // 如果之前有未完成的磁力，先处理
-                            if (magnetBuffer && collectingMagnet) {
-                                const completed = this.processMagnetBuffer(magnetBuffer);
-                                if (completed) reconstructedMagnets.push(completed);
-                            }
-                            
-                            // 开始新的磁力收集
-                            const magnetIndex = line.indexOf('magnet:?xt=urn:btih:');
-                            magnetBuffer = line.substring(magnetIndex); // 从magnet:开始
-                            collectingMagnet = true;
-                            
-                            // 检查当前行是否已经是完整的磁力链接
-                            const hashPart = magnetBuffer.replace('magnet:?xt=urn:btih:', '');
-                            if (this.isValidHashLength(hashPart)) {
-                                const completed = this.processMagnetBuffer(magnetBuffer);
-                                if (completed) reconstructedMagnets.push(completed);
-                                magnetBuffer = '';
-                                collectingMagnet = false;
-                            }
-                        } else if (collectingMagnet && line.length > 0) {
-                            // 继续收集磁力片段
-                            if (/^[A-Fa-f0-9]+$/.test(line)) {
-                                // 纯哈希字符串，直接拼接
-                                magnetBuffer += line;
-                                
-                                // 检查是否达到有效长度
-                                const hashPart = magnetBuffer.replace('magnet:?xt=urn:btih:', '');
-                                if (this.isValidHashLength(hashPart)) {
-                                    const completed = this.processMagnetBuffer(magnetBuffer);
-                                    if (completed) reconstructedMagnets.push(completed);
-                                    magnetBuffer = '';
-                                    collectingMagnet = false;
-                                }
-                            } else if (line.includes('magnet:?xt=urn:btih:')) {
-                                // 新的磁力开始，先处理当前的
-                                if (magnetBuffer) {
-                                    const completed = this.processMagnetBuffer(magnetBuffer);
-                                    if (completed) reconstructedMagnets.push(completed);
-                                }
-                                
-                                // 开始新的磁力
-                                const magnetIndex = line.indexOf('magnet:?xt=urn:btih:');
-                                magnetBuffer = line.substring(magnetIndex);
-                                collectingMagnet = true;
-                            } else {
-                                // 非磁力内容，结束当前收集
-                                if (magnetBuffer) {
-                                    const completed = this.processMagnetBuffer(magnetBuffer);
-                                    if (completed) reconstructedMagnets.push(completed);
-                                }
-                                magnetBuffer = '';
-                                collectingMagnet = false;
+                    let magnetComplete = false;
+
+                    const flushBuffer = () => {
+                        if (magnetBuffer && magnetComplete) {
+                            const completed = this.processMagnetBuffer(magnetBuffer);
+                            if (completed) {
+                                reconstructedMagnets.push(completed);
                             }
                         }
+                        magnetBuffer = '';
+                        collectingMagnet = false;
+                        magnetComplete = false;
+                    };
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+
+                        if (!line) {
+                            if (collectingMagnet) {
+                                flushBuffer();
+                            }
+                            continue;
+                        }
+
+                        if (line.includes(MagnetExtractor.MAGNET_SPECS.STANDARD_PREFIX)) {
+                            if (collectingMagnet) {
+                                flushBuffer();
+                            }
+
+                            const magnetIndex = line.indexOf(MagnetExtractor.MAGNET_SPECS.STANDARD_PREFIX);
+                            magnetBuffer = line.substring(magnetIndex);
+                            collectingMagnet = true;
+                            magnetComplete = this.isValidHashLength(
+                                magnetBuffer.replace(MagnetExtractor.MAGNET_SPECS.STANDARD_PREFIX, '')
+                            );
+                            continue;
+                        }
+
+                        if (!collectingMagnet) {
+                            continue;
+                        }
+
+                        if (this.isPotentialHashFragment(line)) {
+                            magnetBuffer += line;
+                            magnetComplete = this.isValidHashLength(
+                                magnetBuffer.replace(MagnetExtractor.MAGNET_SPECS.STANDARD_PREFIX, '')
+                            );
+                            continue;
+                        }
+
+                        if (this.isMagnetParameterFragment(line)) {
+                            magnetBuffer += line;
+                            continue;
+                        }
+
+                        flushBuffer();
+                        i -= 1; // 重新处理当前行，检查是否是新磁力的开始
                     }
-                    
-                    // 处理最后一个磁力片段
-                    if (magnetBuffer && collectingMagnet) {
-                        const completed = this.processMagnetBuffer(magnetBuffer);
-                        if (completed) reconstructedMagnets.push(completed);
+
+                    if (collectingMagnet) {
+                        flushBuffer();
                     }
-                    
+
                 } catch (error) {
                     console.warn('重组换行磁力时出错:', error);
                 }
@@ -1548,8 +1548,33 @@
             
             // 检查哈希长度是否有效
             isValidHashLength(hash) {
-                const cleanHash = hash.replace(/[^A-Fa-f0-9]/g, '');
-                return cleanHash.length === 40 || cleanHash.length === 32;
+                if (!hash) return false;
+                const trimmed = hash.trim();
+                const separatorIndex = trimmed.search(/[&?]/);
+                const core = separatorIndex === -1 ? trimmed : trimmed.slice(0, separatorIndex);
+                const normalized = core.toUpperCase();
+
+                if (/^[A-F0-9]{40}$/.test(normalized)) {
+                    return true;
+                }
+
+                return /^[A-Z2-7]{32}$/.test(normalized);
+            }
+
+            isPotentialHashFragment(fragment) {
+                if (!fragment) return false;
+                const value = fragment.trim();
+                if (value.length < 8) return false;
+
+                return /^[A-Fa-f0-9]+$/.test(value) || /^[A-Za-z2-7]+$/.test(value);
+            }
+
+            isMagnetParameterFragment(fragment) {
+                if (!fragment) return false;
+                const value = fragment.trim();
+                if (!value.startsWith('&')) return false;
+
+                return /^&[A-Za-z0-9-_]+=[^\s]*$/.test(value);
             }
             
             // 处理磁力缓冲区，提取标准磁力部分 - 修复版本
@@ -1559,31 +1584,22 @@
                 try {
                     // 清理缓冲区，移除空格和换行
                     const cleaned = buffer.replace(/\s+/g, '').trim();
-                    
-                    // 提取magnet:?xt=urn:btih:后面的哈希
-                    const magnetMatch = cleaned.match(/magnet:\?xt=urn:btih:([A-Fa-f0-9]+)/i);
-                    if (magnetMatch && magnetMatch[1]) {
-                        const hash = magnetMatch[1];
-                        
-                        // 验证哈希长度
-                        if (hash.length === 40) {
-                            // SHA1哈希 (40位十六进制)
-                            return `magnet:?xt=urn:btih:${hash.toUpperCase()}`;
-                        } else if (hash.length === 32) {
-                            // Base32哈希 (32位)
-                            return `magnet:?xt=urn:btih:${hash}`;
-                        } else if (hash.length > 40) {
-                            // 截取前40位作为SHA1哈希
-                            return `magnet:?xt=urn:btih:${hash.substring(0, 40).toUpperCase()}`;
-                        }
+                    const sanitized = cleaned.replace(/[.,;:!?）】』」》〉)}\]]*$/, '');
+                    const magnetMatch = sanitized.match(/magnet:\?xt=urn:btih:([A-Fa-f0-9]{40}|[A-Za-z2-7]{32})/i);
+
+                    if (magnetMatch) {
+                        const hash = magnetMatch[1].toUpperCase();
+                        return `${MagnetExtractor.MAGNET_SPECS.STANDARD_PREFIX}${hash}`;
                     }
-                    
+
                     return null;
                 } catch (error) {
                     console.warn('处理磁力缓冲区时出错:', error);
                     return null;
                 }
-            }        // 处理换行磁力识别
+            }
+
+            // 处理换行磁力识别
         processCrossLineMagnets() {
             const rawText = document.getElementById('inputText').value;
             if (!rawText.trim()) {
@@ -1612,8 +1628,7 @@
                 } else {
                     // 验证重组的磁力链接
                     const validReconstructed = reconstructedMagnets.filter(magnet => {
-                        return magnet.length >= MagnetExtractor.MAGNET_SPECS.MIN_STANDARD_LENGTH && 
-                               magnet.includes('xt=urn:btih:') &&
+                        return magnet.startsWith(MagnetExtractor.MAGNET_SPECS.STANDARD_PREFIX) &&
                                this.validateMagnetLink(magnet);
                     });
                     
@@ -2066,6 +2081,31 @@
         
         // 初始化主题系统
         initThemeSystem();
+
+        const clearInputBtn = document.getElementById('clearInputBtn');
+        if (clearInputBtn) {
+            clearInputBtn.addEventListener('click', clearInput);
+        }
+
+        const crossLineBtn = document.getElementById('crossLineMagnetBtn');
+        if (crossLineBtn) {
+            crossLineBtn.addEventListener('click', processCrossLineMagnets);
+        }
+
+        const copyAllBtn = document.getElementById('copyAllBtn');
+        if (copyAllBtn) {
+            copyAllBtn.addEventListener('click', copyAllMagnets);
+        }
+
+        const saveBtn = document.getElementById('saveBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', saveToHistory);
+        }
+
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        if (clearHistoryBtn) {
+            clearHistoryBtn.addEventListener('click', clearHistory);
+        }
     });
 
     // 主题系统实现
@@ -2073,6 +2113,29 @@
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
         const THEME_KEY = 'magnet-tool-theme';
+        const ICON_URL = 'https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/logo.webp';
+        const ICON_DEFINITIONS = [
+            { rel: 'icon', type: 'image/webp', sizes: '512x512' },
+            { rel: 'shortcut icon', type: 'image/webp' },
+            { rel: 'apple-touch-icon', sizes: '180x180' }
+        ];
+        const DYNAMIC_ICON_SELECTOR = ICON_DEFINITIONS
+            .map(def => `link[rel="${def.rel}"]`)
+            .join(', ');
+        let iconsInitialized = false;
+
+        function upsertMetaTag(name, attributes = {}) {
+            let meta = document.querySelector(`meta[name="${name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('name', name);
+                document.head.appendChild(meta);
+            }
+            Object.entries(attributes).forEach(([key, value]) => {
+                meta.setAttribute(key, value);
+            });
+            return meta;
+        }
         
         // 获取当前应该使用的主题
         function getCurrentTheme() {
@@ -2121,41 +2184,19 @@
         
         // 更新iPhone Safari状态栏颜色
         function updateStatusBarColor(theme) {
-            // 移除现有的theme-color meta标签
-            const existingThemeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
-            existingThemeColorMetas.forEach(meta => meta.remove());
-            
             // 根据主题设置状态栏颜色
             const themeColors = {
                 light: '#fefcf7',  // 日间模式：温暖米白色
                 dark: '#0f1419'    // 夜间模式：深蓝灰色
             };
             
-            // 创建新的theme-color meta标签
-            const themeColorMeta = document.createElement('meta');
-            themeColorMeta.name = 'theme-color';
-            themeColorMeta.content = themeColors[theme] || themeColors.light;
-            document.head.appendChild(themeColorMeta);
+            upsertMetaTag('theme-color', { content: themeColors[theme] || themeColors.light });
             
-            // 同时更新apple-mobile-web-app-status-bar-style
-            let statusBarStyleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-            if (!statusBarStyleMeta) {
-                statusBarStyleMeta = document.createElement('meta');
-                statusBarStyleMeta.name = 'apple-mobile-web-app-status-bar-style';
-                document.head.appendChild(statusBarStyleMeta);
-            }
-            
-            // 根据主题设置状态栏样式
-            // 在iOS Safari中，使用 'black-translucent' 可以让状态栏文字变为白色
-            // 'default' 会让状态栏文字为黑色
-            if (theme === 'dark') {
-                statusBarStyleMeta.content = 'black-translucent';
-            } else {
-                statusBarStyleMeta.content = 'default';
-            }
+            const statusBarStyle = theme === 'dark' ? 'black-translucent' : 'default';
+            upsertMetaTag('apple-mobile-web-app-status-bar-style', { content: statusBarStyle });
             
             // 更新网站图标以匹配主题
-            updateFavicon(theme);
+            updateFavicon();
             
             // 添加额外的iOS Safari优化
             // 为了确保在iOS Safari中状态栏颜色正确显示
@@ -2175,28 +2216,30 @@
         }
         
         // 更新网站图标以匹配页面顶部设计
-        function updateFavicon(theme) {
-            // 移除现有的图标，确保只有最新的资源
-            const existingIcons = document.querySelectorAll('link[rel*="icon"]');
-            existingIcons.forEach(icon => icon.remove());
+        function updateFavicon() {
+            if (iconsInitialized) {
+                const managedIcons = document.querySelectorAll('[data-theme-icon="true"]');
+                if (managedIcons.length === ICON_DEFINITIONS.length) {
+                    return;
+                }
+            }
 
-            const iconUrl = 'https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/favicon.png';
-            const appleIconUrl = 'https://cdn.jsdelivr.net/gh/SuperNG6/magnet-tool@main/apple-touch-icon.png';
+            if (DYNAMIC_ICON_SELECTOR) {
+                document.querySelectorAll(DYNAMIC_ICON_SELECTOR).forEach(icon => icon.remove());
+            }
 
-            // 为主要浏览器（包括Safari）设置统一的图标资源
-            const icons = [
-                { rel: 'icon', href: iconUrl, type: 'image/png', sizes: '64x64' },
-                { rel: 'shortcut icon', href: iconUrl, type: 'image/png' },
-                { rel: 'apple-touch-icon', href: appleIconUrl, sizes: '180x180' }
-            ];
-
-            icons.forEach(iconData => {
+            const fragment = document.createDocumentFragment();
+            ICON_DEFINITIONS.forEach(iconDef => {
                 const link = document.createElement('link');
-                Object.entries(iconData).forEach(([key, value]) => {
+                Object.entries({ ...iconDef, href: ICON_URL }).forEach(([key, value]) => {
                     link.setAttribute(key, value);
                 });
-                document.head.appendChild(link);
+                link.setAttribute('data-theme-icon', 'true');
+                fragment.appendChild(link);
             });
+
+            document.head.appendChild(fragment);
+            iconsInitialized = true;
         }
         
         // 更新主题图标 - 显示相反状态的按钮
@@ -2250,7 +2293,12 @@
                 
                 const handleChange = () => {
                     // 获取用户设置的主题（如果有）
-                    const userTheme = localStorage.getItem(THEME_KEY);
+                    let userTheme = null;
+                    try {
+                        userTheme = localStorage.getItem(THEME_KEY);
+                    } catch (e) {
+                        userTheme = null;
+                    }
                     const systemTheme = getSystemTheme();
                     
                     // 如果用户没有设置过主题，或者系统主题变化了，就应用系统主题
